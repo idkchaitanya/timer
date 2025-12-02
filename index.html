@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .tabs {
+            display: flex;
+            background: #e0e0e0;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            background: #d5d5d5;
+        }
+
+        .tab.active {
+            background: white;
+            color: #333;
+            border-bottom: 2px solid #4a90e2;
+        }
+
+        .content {
+            padding: 40px 20px;
+            min-height: 300px;
+        }
+
+        .timer-section {
+            display: none;
+        }
+
+        .timer-section.active {
+            display: block;
+        }
+
+        .display {
+            font-size: 48px;
+            font-weight: 300;
+            text-align: center;
+            margin-bottom: 30px;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 2px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: #4a90e2;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #357abd;
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .input-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .input-wrapper label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .input-wrapper input {
+            width: 60px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .pomodoro-status {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+            height: 20px;
+        }
+
+        .pomodoro-settings {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .pomodoro-setting {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .pomodoro-setting label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .pomodoro-setting input {
+            width: 50px;
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="tabs">
+            <button class="tab active" data-tab="stopwatch">Stopwatch</button>
+            <button class="tab" data-tab="pomodoro">Pomodoro</button>
+            <button class="tab" data-tab="countdown">Countdown</button>
+        </div>
+
+        <div class="content">
+            <!-- Stopwatch Section -->
+            <div class="timer-section active" id="stopwatch">
+                <div class="display" id="stopwatch-display">00:00:00</div>
+                <div class="controls">
+                    <button class="btn btn-primary" id="stopwatch-start-pause">Start</button>
+                    <button class="btn btn-secondary" id="stopwatch-reset">Reset</button>
+                </div>
+            </div>
+
+            <!-- Pomodoro Section -->
+            <div class="timer-section" id="pomodoro">
+                <div class="pomodoro-settings">
+                    <div class="pomodoro-setting">
+                        <label>Work (min)</label>
+                        <input type="number" id="pomodoro-work" min="1" max="60" value="25">
+                    </div>
+                    <div class="pomodoro-setting">
+                        <label>Break (min)</label>
+                        <input type="number" id="pomodoro-break" min="1" max="30" value="5">
+                    </div>
+                </div>
+                <div class="pomodoro-status" id="pomodoro-status">Work Session</div>
+                <div class="display" id="pomodoro-display">25:00</div>
+                <div class="controls">
+                    <button class="btn btn-primary" id="pomodoro-start-pause">Start</button>
+                    <button class="btn btn-secondary" id="pomodoro-reset">Reset</button>
+                </div>
+            </div>
+
+            <!-- Countdown Section -->
+            <div class="timer-section" id="countdown">
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <label>Hours</label>
+                        <input type="number" id="countdown-hours" min="0" max="23" value="0">
+                    </div>
+                    <div class="input-wrapper">
+                        <label>Minutes</label>
+                        <input type="number" id="countdown-minutes" min="0" max="59" value="5">
+                    </div>
+                    <div class="input-wrapper">
+                        <label>Seconds</label>
+                        <input type="number" id="countdown-seconds" min="0" max="59" value="0">
+                    </div>
+                </div>
+                <div class="display" id="countdown-display">00:05:00</div>
+                <div class="controls">
+                    <button class="btn btn-primary" id="countdown-start-pause">Start</button>
+                    <button class="btn btn-secondary" id="countdown-reset">Reset</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        const tabs = document.querySelectorAll('.tab');
+        const sections = document.querySelectorAll('.timer-section');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetTab = tab.dataset.tab;
+                
+                tabs.forEach(t => t.classList.remove('active'));
+                sections.forEach(s => s.classList.remove('active'));
+                
+                tab.classList.add('active');
+                document.getElementById(targetTab).classList.add('active');
+            });
+        });
+
+        // Timer utilities
+        function formatTime(seconds, showHours = true) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            
+            if (showHours) {
+                return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            }
+            return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        // Stopwatch
+        class Stopwatch {
+            constructor() {
+                this.display = document.getElementById('stopwatch-display');
+                this.startPauseBtn = document.getElementById('stopwatch-start-pause');
+                this.resetBtn = document.getElementById('stopwatch-reset');
+                
+                this.seconds = 0;
+                this.running = false;
+                this.interval = null;
+                
+                this.startPauseBtn.addEventListener('click', () => this.toggle());
+                this.resetBtn.addEventListener('click', () => this.reset());
+            }
+            
+            toggle() {
+                if (this.running) {
+                    this.pause();
+                } else {
+                    this.start();
+                }
+            }
+            
+            start() {
+                this.running = true;
+                this.startPauseBtn.textContent = 'Pause';
+                this.interval = setInterval(() => {
+                    this.seconds++;
+                    this.updateDisplay();
+                }, 1000);
+            }
+            
+            pause() {
+                this.running = false;
+                this.startPauseBtn.textContent = 'Start';
+                clearInterval(this.interval);
+            }
+            
+            reset() {
+                this.pause();
+                this.seconds = 0;
+                this.updateDisplay();
+            }
+            
+            updateDisplay() {
+                this.display.textContent = formatTime(this.seconds);
+            }
+        }
+
+        // Pomodoro Timer
+        class PomodoroTimer {
+            constructor() {
+                this.display = document.getElementById('pomodoro-display');
+                this.statusDisplay = document.getElementById('pomodoro-status');
+                this.startPauseBtn = document.getElementById('pomodoro-start-pause');
+                this.resetBtn = document.getElementById('pomodoro-reset');
+                this.workInput = document.getElementById('pomodoro-work');
+                this.breakInput = document.getElementById('pomodoro-break');
+                
+                this.workTime = 25 * 60;
+                this.breakTime = 5 * 60;
+                this.currentTime = this.workTime;
+                this.isWorkSession = true;
+                this.running = false;
+                this.interval = null;
+                
+                this.startPauseBtn.addEventListener('click', () => this.toggle());
+                this.resetBtn.addEventListener('click', () => this.reset());
+                this.workInput.addEventListener('input', () => this.updateSettings());
+                this.breakInput.addEventListener('input', () => this.updateSettings());
+                
+                this.updateDisplay();
+            }
+            
+            toggle() {
+                if (this.running) {
+                    this.pause();
+                } else {
+                    this.start();
+                }
+            }
+            
+            start() {
+                this.running = true;
+                this.startPauseBtn.textContent = 'Pause';
+                this.interval = setInterval(() => {
+                    this.currentTime--;
+                    this.updateDisplay();
+                    
+                    if (this.currentTime <= 0) {
+                        this.switchSession();
+                    }
+                }, 1000);
+            }
+            
+            pause() {
+                this.running = false;
+                this.startPauseBtn.textContent = 'Start';
+                clearInterval(this.interval);
+            }
+            
+            reset() {
+                this.pause();
+                this.isWorkSession = true;
+                this.updateSettings();
+                this.currentTime = this.workTime;
+                this.updateDisplay();
+            }
+            
+            updateSettings() {
+                const workMinutes = parseInt(this.workInput.value) || 25;
+                const breakMinutes = parseInt(this.breakInput.value) || 5;
+                
+                this.workTime = workMinutes * 60;
+                this.breakTime = breakMinutes * 60;
+                
+                if (!this.running) {
+                    this.currentTime = this.isWorkSession ? this.workTime : this.breakTime;
+                    this.updateDisplay();
+                }
+            }
+            
+            switchSession() {
+                this.isWorkSession = !this.isWorkSession;
+                this.currentTime = this.isWorkSession ? this.workTime : this.breakTime;
+                this.updateDisplay();
+            }
+            
+            updateDisplay() {
+                this.display.textContent = formatTime(this.currentTime, false);
+                this.statusDisplay.textContent = this.isWorkSession ? 'Work Session' : 'Break Time';
+            }
+        }
+
+        // Countdown Timer
+        class CountdownTimer {
+            constructor() {
+                this.display = document.getElementById('countdown-display');
+                this.startPauseBtn = document.getElementById('countdown-start-pause');
+                this.resetBtn = document.getElementById('countdown-reset');
+                this.hoursInput = document.getElementById('countdown-hours');
+                this.minutesInput = document.getElementById('countdown-minutes');
+                this.secondsInput = document.getElementById('countdown-seconds');
+                
+                this.totalSeconds = 0;
+                this.running = false;
+                this.interval = null;
+                
+                this.startPauseBtn.addEventListener('click', () => this.toggle());
+                this.resetBtn.addEventListener('click', () => this.reset());
+                
+                this.hoursInput.addEventListener('input', () => this.updateFromInputs());
+                this.minutesInput.addEventListener('input', () => this.updateFromInputs());
+                this.secondsInput.addEventListener('input', () => this.updateFromInputs());
+                
+                this.updateFromInputs();
+            }
+            
+            toggle() {
+                if (this.running) {
+                    this.pause();
+                } else {
+                    this.start();
+                }
+            }
+            
+            start() {
+                if (this.totalSeconds === 0) {
+                    this.updateFromInputs();
+                }
+                if (this.totalSeconds === 0) return;
+                
+                this.running = true;
+                this.startPauseBtn.textContent = 'Pause';
+                this.interval = setInterval(() => {
+                    this.totalSeconds--;
+                    this.updateDisplay();
+                    
+                    if (this.totalSeconds <= 0) {
+                        this.pause();
+                    }
+                }, 1000);
+            }
+            
+            pause() {
+                this.running = false;
+                this.startPauseBtn.textContent = 'Start';
+                clearInterval(this.interval);
+            }
+            
+            reset() {
+                this.pause();
+                this.updateFromInputs();
+            }
+            
+            updateFromInputs() {
+                const hours = parseInt(this.hoursInput.value) || 0;
+                const minutes = parseInt(this.minutesInput.value) || 0;
+                const seconds = parseInt(this.secondsInput.value) || 0;
+                this.totalSeconds = hours * 3600 + minutes * 60 + seconds;
+                this.updateDisplay();
+            }
+            
+            updateDisplay() {
+                this.display.textContent = formatTime(this.totalSeconds);
+            }
+        }
+
+        // Initialize all timers
+        const stopwatch = new Stopwatch();
+        const pomodoro = new PomodoroTimer();
+        const countdown = new CountdownTimer();
+    </script>
+</body>
+</html>
